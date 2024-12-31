@@ -1,0 +1,207 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html ng-app="websiteScraperApp">
+<head>
+    <meta charset="UTF-8">
+    <title>Website Navigation Scraper</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Include AngularJS from CDN -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="js/app.js"></script>
+</head>
+<body ng-controller="MainController">
+    <div class="container">
+        <h1>Website Navigation Scraper</h1>
+
+        <!-- Scrape URL Section -->
+        <div class="section">
+            <h2>Scrape a New URL</h2>
+            <form ng-submit="scrapeUrl()">
+                <input type="url" ng-model="newScrape.url" placeholder="Enter URL to scrape" required>
+                <button type="submit">Scrape URL</button>
+            </form>
+            <div class="status" ng-show="scrapeStatus">
+                <p>{{scrapeStatus}}</p>
+            </div>
+        </div>
+
+        <!-- Tabs for Navigation -->
+        <div class="tabs">
+            <button ng-class="{'active': currentTab === 'urls'}" ng-click="setTab('urls')">URLs</button>
+            <button ng-class="{'active': currentTab === 'pages'}" ng-click="setTab('pages')">Pages</button>
+            <button ng-class="{'active': currentTab === 'meta_tags'}" ng-click="setTab('meta_tags')">Meta Tags</button>
+        </div>
+
+        <!-- URLs Management -->
+        <div ng-show="currentTab === 'urls'">
+            <h2>Manage URLs</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Host</th>
+                        <th>Port</th>
+                        <th>Path</th>
+                        <th>Query String</th>
+                        <th>Fragment</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="url in urls">
+                        <td>{{url.id}}</td>
+                        <td>{{url.host}}</td>
+                        <td>{{url.port}}</td>
+                        <td>{{url.path}}</td>
+                        <td>{{url.query_string}}</td>
+                        <td>{{url.fragment}}</td>
+                        <td>
+                            <button ng-click="editUrl(url)">Edit</button>
+                            <button ng-click="deleteUrl(url.id)">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Edit URL Modal -->
+            <div class="modal" ng-show="urlToEdit">
+                <div class="modal-content">
+                    <span class="close" ng-click="urlToEdit = null">&times;</span>
+                    <h3>Edit URL</h3>
+                    <form ng-submit="updateUrl()">
+                        <input type="hidden" ng-model="urlToEdit.id">
+                        <input type="text" ng-model="urlToEdit.host" placeholder="Host (e.g., www.example.com)" required>
+                        <input type="number" ng-model="urlToEdit.port" placeholder="Port (e.g., 80)" required>
+                        <input type="text" ng-model="urlToEdit.path" placeholder="Path (e.g., /home)" required>
+                        <input type="text" ng-model="urlToEdit.query_string" placeholder="Query String (optional)">
+                        <input type="text" ng-model="urlToEdit.fragment" placeholder="Fragment (optional)">
+                        <button type="submit">Update URL</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pages Management -->
+        <div ng-show="currentTab === 'pages'">
+            <h2>Manage Pages</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>URL</th>
+                        <th>Title</th>
+                        <th>H1</th>
+                        <th>Slug</th>
+                        <th>Description</th>
+                        <th>P_after_h1</th>
+                        <th>Global Script</th>
+                        <th>Canonical URL</th>
+                        <th>Schema Markup</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="page in pages">
+                        <td>{{page.id}}</td>
+                        <td>{{getUrl(page.url_id)}}</td>
+                        <td>{{page.title}}</td>
+                        <td>{{page.H1}}</td>
+                        <td>{{page.slug}}</td>
+                        <td>{{page.description}}</td>
+                        <td>{{page.p_after_h1}}</td>
+                        <td>{{page.global_script}}</td>
+                        <td>{{page.canonical_url}}</td>
+                        <td>{{page.schema_markup}}</td>
+                        <td>
+                            <button ng-click="editPage(page)">Edit</button>
+                            <button ng-click="deletePage(page.id)">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Edit Page Modal -->
+            <div class="modal" ng-show="pageToEdit">
+                <div class="modal-content">
+                    <span class="close" ng-click="pageToEdit = null">&times;</span>
+                    <h3>Edit Page</h3>
+                    <form ng-submit="updatePage()">
+                        <input type="hidden" ng-model="pageToEdit.id">
+                        <select ng-model="pageToEdit.url_id" required>
+                            <option value="" disabled>Select URL</option>
+                            <option ng-repeat="url in urls" value="{{url.id}}">{{url.host}}:{{url.port}}{{url.path}}</option>
+                        </select>
+                        <input type="text" ng-model="pageToEdit.title" placeholder="Title" required>
+                        <input type="text" ng-model="pageToEdit.H1" placeholder="H1" required>
+                        <input type="text" ng-model="pageToEdit.slug" placeholder="Slug (unique)" required>
+                        <input type="text" ng-model="pageToEdit.description" placeholder="Description (optional)">
+                        <textarea ng-model="pageToEdit.p_after_h1" placeholder="Paragraph after H1 (optional)"></textarea>
+                        <textarea ng-model="pageToEdit.global_script" placeholder="Global Script (optional)"></textarea>
+                        <input type="text" ng-model="pageToEdit.canonical_url" placeholder="Canonical URL (optional)">
+                        <textarea ng-model="pageToEdit.schema_markup" placeholder="Schema Markup (optional)"></textarea>
+                        <button type="submit">Update Page</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meta Tags Management -->
+        <div ng-show="currentTab === 'meta_tags'">
+            <h2>Manage Meta Tags</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Page</th>
+                        <th>Meta Title</th>
+                        <th>Meta Description</th>
+                        <th>Viewpoint</th>
+                        <th>Author</th>
+                        <th>Twitter Card Tags</th>
+                        <th>Language Tag</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="meta in meta_tags">
+                        <td>{{meta.id}}</td>
+                        <td>{{getPage(meta.page_id)}}</td>
+                        <td>{{meta.meta_title}}</td>
+                        <td>{{meta.meta_description}}</td>
+                        <td>{{meta.viewpoint}}</td>
+                        <td>{{meta.author}}</td>
+                        <td>{{meta.twitter_card_tags}}</td>
+                        <td>{{meta.language_tag}}</td>
+                        <td>
+                            <button ng-click="editMetaTag(meta)">Edit</button>
+                            <button ng-click="deleteMetaTag(meta.id)">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Edit Meta Tag Modal -->
+            <div class="modal" ng-show="metaTagToEdit">
+                <div class="modal-content">
+                    <span class="close" ng-click="metaTagToEdit = null">&times;</span>
+                    <h3>Edit Meta Tag</h3>
+                    <form ng-submit="updateMetaTag()">
+                        <input type="hidden" ng-model="metaTagToEdit.id">
+                        <select ng-model="metaTagToEdit.page_id" required>
+                            <option value="" disabled>Select Page</option>
+                            <option ng-repeat="page in pages" value="{{page.id}}">{{page.title}} (ID: {{page.id}})</option>
+                        </select>
+                        <input type="text" ng-model="metaTagToEdit.meta_title" placeholder="Meta Title" required>
+                        <textarea ng-model="metaTagToEdit.meta_description" placeholder="Meta Description (optional)"></textarea>
+                        <input type="text" ng-model="metaTagToEdit.viewpoint" placeholder="Viewpoint (optional)">
+                        <input type="text" ng-model="metaTagToEdit.author" placeholder="Author (optional)">
+                        <input type="text" ng-model="metaTagToEdit.twitter_card_tags" placeholder="Twitter Card Tags (optional)">
+                        <input type="text" ng-model="metaTagToEdit.language_tag" placeholder="Language Tag (e.g., en, de)" required>
+                        <button type="submit">Update Meta Tag</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
